@@ -15,6 +15,9 @@ RUN mvn package -DskipTests=true -B
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
+# Ensure latest system CA certificates are installed for public TLS verification
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
+
 # Non-root security user
 RUN groupadd -r stockmaster && useradd -r -g stockmaster stockmaster
 
