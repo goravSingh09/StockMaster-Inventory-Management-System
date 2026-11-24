@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' — StockMaster'"></title>
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Chart.js 4.4 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <!-- Custom StockMaster Styles -->
+    <link th:href="@{/css/stockmaster.css}" rel="stylesheet">
+</head>
+<body>
+
+<!-- Sidebar Fragment -->
+<aside th:fragment="sidebar(activePage)" class="sm-sidebar">
+    <div class="sm-brand">
+        <div class="sm-brand-icon">
+            <i class="bi bi-boxes"></i>
+        </div>
+        <div>
+            <h1 class="sm-brand-title">StockMaster</h1>
+            <small class="text-secondary" style="font-size: 0.7rem;">DSA Inventory Pro</small>
+        </div>
+        <span class="sm-brand-badge">A6 Project</span>
+    </div>
+
+    <div class="sm-sidebar-nav">
+        <div class="sm-nav-section-title">Core Management</div>
+        <a th:href="@{/dashboard}" class="sm-nav-link" th:classappend="${activePage == 'dashboard'} ? 'active'">
+            <i class="bi bi-grid-1x2-fill"></i>
+            <span>Dashboard</span>
+        </a>
+        <a th:href="@{/products}" class="sm-nav-link" th:classappend="${activePage == 'products'} ? 'active'">
+            <i class="bi bi-box-seam-fill"></i>
+            <span>Products</span>
+        </a>
+        <a th:href="@{/products/low-stock}" class="sm-nav-link" th:classappend="${activePage == 'low-stock'} ? 'active'">
+            <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+            <span>Low Stock Alerts</span>
+        </a>
+        <a th:href="@{/stock}" class="sm-nav-link" th:classappend="${activePage == 'stock'} ? 'active'">
+            <i class="bi bi-arrow-left-right"></i>
+            <span>Stock In / Out</span>
+        </a>
+
+        <div class="sm-nav-section-title">Sales & Billing</div>
+        <a th:href="@{/sales}" class="sm-nav-link" th:classappend="${activePage == 'sales'} ? 'active'">
+            <i class="bi bi-receipt"></i>
+            <span>Sales & Invoices</span>
+        </a>
+        <a th:href="@{/sales/new}" class="sm-nav-link" th:classappend="${activePage == 'pos'} ? 'active'">
+            <i class="bi bi-cart-plus-fill"></i>
+            <span>Point of Sale (POS)</span>
+        </a>
+        <a th:href="@{/sales/best-sellers}" class="sm-nav-link" th:classappend="${activePage == 'best-sellers'} ? 'active'">
+            <i class="bi bi-trophy-fill text-warning"></i>
+            <span>Top Sellers (MaxHeap)</span>
+        </a>
+
+        <div class="sm-nav-section-title">DSA & Algorithms</div>
+        <a th:href="@{/search}" class="sm-nav-link" th:classappend="${activePage == 'search'} ? 'active'">
+            <i class="bi bi-search"></i>
+            <span>Advanced Search</span>
+        </a>
+        <a th:href="@{/dsa-analysis}" class="sm-nav-link" th:classappend="${activePage == 'dsa-analysis'} ? 'active'">
+            <i class="bi bi-speedometer2 text-info"></i>
+            <span>DSA Benchmarking</span>
+        </a>
+
+        <div class="sm-nav-section-title">Audit Trail</div>
+        <a th:href="@{/history}" class="sm-nav-link" th:classappend="${activePage == 'history'} ? 'active'">
+            <i class="bi bi-clock-history"></i>
+            <span>Full History</span>
+        </a>
+    </div>
+
+    <div class="sm-sidebar-footer d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+            <div class="sm-user-avatar">
+                <i class="bi bi-person-fill"></i>
+            </div>
+            <div>
+                <div class="text-white fw-semibold small" th:text="${session.LOGGED_IN_ADMIN != null ? session.LOGGED_IN_ADMIN.fullName : 'Administrator'}">Admin</div>
+                <small class="text-secondary" style="font-size: 0.72rem;">Online</small>
+            </div>
+        </div>
+        <a th:href="@{/logout}" class="btn btn-sm btn-outline-danger p-1" title="Sign Out">
+            <i class="bi bi-box-arrow-right"></i>
+        </a>
+    </div>
+</aside>
+
+<!-- Topbar Fragment -->
+<header th:fragment="topbar(pageTitle)" class="sm-topbar">
+    <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-sm btn-light d-lg-none" id="smSidebarToggle">
+            <i class="bi bi-list fs-5"></i>
+        </button>
+        <div>
+            <h5 class="mb-0 fw-bold text-dark" th:text="${pageTitle}">Dashboard</h5>
+            <small class="text-muted d-none d-sm-inline" style="font-size: 0.78rem;">StockMaster Enterprise Management System</small>
+        </div>
+    </div>
+
+    <div class="d-flex align-items-center gap-3">
+        <a th:href="@{/search}" class="btn btn-sm btn-light border d-none d-md-flex align-items-center gap-2 text-secondary">
+            <i class="bi bi-search"></i>
+            <span>Search (HashTable / AVL / Binary)</span>
+            <span class="badge bg-secondary-subtle text-dark border">/</span>
+        </a>
+        <a th:href="@{/sales/new}" class="btn btn-sm btn-primary d-flex align-items-center gap-2">
+            <i class="bi bi-plus-circle"></i>
+            <span class="d-none d-sm-inline">New Sale</span>
+        </a>
+        <div class="dropdown">
+            <button class="btn btn-sm btn-light border dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown">
+                <i class="bi bi-person-circle text-primary"></i>
+                <span class="fw-semibold small" th:text="${session.LOGGED_IN_ADMIN != null ? session.LOGGED_IN_ADMIN.username : 'admin'}">admin</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                <li><h6 class="dropdown-header">System Admin</h6></li>
+                <li><a class="dropdown-item" th:href="@{/products/new}"><i class="bi bi-plus-lg me-2"></i>Add Product</a></li>
+                <li><a class="dropdown-item" th:href="@{/stock}"><i class="bi bi-arrow-left-right me-2"></i>Stock In / Out</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" th:href="@{/logout}"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+            </ul>
+        </div>
+    </div>
+</header>
+
+<!-- Flash Alerts Fragment -->
+<div th:fragment="alerts" class="mb-4">
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm d-flex align-items-center gap-2" role="alert">
+        <i class="bi bi-check-circle-fill fs-5"></i>
+        <div th:text="${successMessage}">Operation successful!</div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm d-flex align-items-center gap-2" role="alert">
+        <i class="bi bi-exclamation-octagon-fill fs-5"></i>
+        <div th:text="${errorMessage}">An error occurred!</div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+
+<!-- Scripts Fragment -->
+<div th:fragment="scripts">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/stockmaster.js}"></script>
+</div>
+
+</body>
+</html>

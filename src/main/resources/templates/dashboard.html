@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
+<body>
+
+<aside th:replace="~{fragments/layout :: sidebar('dashboard')}"></aside>
+
+<div class="sm-main-wrapper">
+    <header th:replace="~{fragments/layout :: topbar('Command Center & Analytics')}"></header>
+
+    <main class="sm-content-area">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <!-- KPI Statistic Cards Row -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="sm-stat-card d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="sm-stat-label">Total Products</div>
+                        <div class="sm-stat-value" th:text="${stats.totalProducts}">35</div>
+                        <small class="text-muted"><i class="bi bi-diagram-3 text-primary me-1"></i>Indexed in HashTable & AVL</small>
+                    </div>
+                    <div class="sm-stat-icon bg-primary-subtle text-primary">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="sm-stat-card d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="sm-stat-label">Total Stock Units</div>
+                        <div class="sm-stat-value" th:text="${stats.totalStockUnits}">1,240</div>
+                        <small class="text-muted"><i class="bi bi-stack text-info me-1"></i>Warehouse Inventory</small>
+                    </div>
+                    <div class="sm-stat-icon bg-info-subtle text-info">
+                        <i class="bi bi-boxes"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="sm-stat-card d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="sm-stat-label">Total Inventory Value</div>
+                        <div class="sm-stat-value text-success" th:text="'$' + ${#numbers.formatDecimal(stats.totalInventoryValue, 1, 'COMMA', 2, 'POINT')}">$54,230.00</div>
+                        <small class="text-muted"><i class="bi bi-shield-check text-success me-1"></i>Asset Valuation</small>
+                    </div>
+                    <div class="sm-stat-icon bg-success-subtle text-success">
+                        <i class="bi bi-currency-dollar"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="sm-stat-card d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="sm-stat-label">Total Sales Revenue</div>
+                        <div class="sm-stat-value text-primary" th:text="'$' + ${#numbers.formatDecimal(stats.totalRevenue, 1, 'COMMA', 2, 'POINT')}">$8,450.00</div>
+                        <small class="text-muted" th:text="${stats.totalSalesCount} + ' completed invoices'">6 completed invoices</small>
+                    </div>
+                    <div class="sm-stat-icon bg-primary-subtle text-primary">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Low Stock Banner if any -->
+        <div th:if="${stats.lowStockCount > 0}" class="alert alert-warning border-warning shadow-sm d-flex align-items-center justify-content-between mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="fs-3 text-warning"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                <div>
+                    <h6 class="alert-heading mb-0 fw-bold" th:text="${stats.lowStockCount} + ' Product(s) Below Minimum Reorder Level!'">Attention: Low Stock Products</h6>
+                    <small class="text-dark">Some products have reached their threshold or are completely out of stock. Replenish immediately.</small>
+                </div>
+            </div>
+            <a th:href="@{/products/low-stock}" class="btn btn-sm btn-warning fw-semibold shadow-sm text-dark">
+                View Low Stock Alerts <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row g-3 mb-4">
+            <!-- Monthly Sales Trend Chart -->
+            <div class="col-12 col-lg-8">
+                <div class="sm-card h-100">
+                    <div class="sm-card-header">
+                        <h6 class="sm-card-title"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Monthly Sales Revenue Trend</h6>
+                        <span class="badge bg-light text-secondary border">Real-time DB Data</span>
+                    </div>
+                    <div class="sm-card-body">
+                        <div style="height: 290px;">
+                            <canvas id="monthlySalesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory Category Distribution Chart -->
+            <div class="col-12 col-lg-4">
+                <div class="sm-card h-100">
+                    <div class="sm-card-header">
+                        <h6 class="sm-card-title"><i class="bi bi-pie-chart-fill text-info me-2"></i>Inventory by Category</h6>
+                        <span class="badge bg-light text-secondary border">Products</span>
+                    </div>
+                    <div class="sm-card-body d-flex align-items-center justify-content-center">
+                        <div style="height: 260px; width: 100%;">
+                            <canvas id="categoryDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tables Row: Best Sellers (MaxHeap) & Recent Transactions -->
+        <div class="row g-3 mb-4">
+            <!-- Best-Selling Products via Custom Max Heap -->
+            <div class="col-12 col-lg-6">
+                <div class="sm-card h-100">
+                    <div class="sm-card-header">
+                        <div>
+                            <h6 class="sm-card-title"><i class="bi bi-trophy-fill text-warning me-2"></i>Top 5 Best-Selling Products</h6>
+                            <small class="text-muted" style="font-size: 0.75rem;">Ranked by Custom Max Heap Priority Queue</small>
+                        </div>
+                        <a th:href="@{/sales/best-sellers}" class="btn btn-sm btn-outline-primary" style="font-size: 0.78rem;">View Top 10</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table sm-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th class="text-end">Units Sold</th>
+                                    <th class="text-end">Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="p, stat : ${stats.topSellingProducts}">
+                                    <td>
+                                        <span class="badge"
+                                              th:classappend="${stat.index == 0 ? 'bg-warning text-dark' : (stat.index == 1 ? 'bg-secondary text-white' : (stat.index == 2 ? 'bg-danger-subtle text-danger' : 'bg-light text-dark border'))}"
+                                              th:text="'#' + ${stat.count}">#1</span>
+                                    </td>
+                                    <td>
+                                        <strong th:text="${p.productName}">Product Name</strong><br>
+                                        <small class="text-muted font-monospace" th:text="${p.productCode}">PRD-1001</small>
+                                    </td>
+                                    <td><span class="badge bg-light text-dark border" th:text="${p.category}">Category</span></td>
+                                    <td class="text-end fw-bold text-primary" th:text="${p.unitsSold}">15</td>
+                                    <td class="text-end fw-semibold" th:text="'$' + ${#numbers.formatDecimal(p.totalRevenue, 1, 'COMMA', 2, 'POINT')}">$150.00</td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(stats.topSellingProducts)}">
+                                    <td colspan="5" class="text-center text-muted py-4">No sales records available yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Stock Transactions -->
+            <div class="col-12 col-lg-6">
+                <div class="sm-card h-100">
+                    <div class="sm-card-header">
+                        <div>
+                            <h6 class="sm-card-title"><i class="bi bi-arrow-left-right text-success me-2"></i>Recent Stock Movements</h6>
+                            <small class="text-muted" style="font-size: 0.75rem;">Live Inventory Audit Trail</small>
+                        </div>
+                        <a th:href="@{/history}" class="btn btn-sm btn-outline-secondary" style="font-size: 0.78rem;">Full History</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table sm-table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Product</th>
+                                    <th>Qty</th>
+                                    <th>Stock Level</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="tx : ${stats.recentTransactions}">
+                                    <td>
+                                        <span class="badge"
+                                              th:classappend="${tx.transactionType.name() == 'STOCK_IN' ? 'badge-stock-in' : (tx.transactionType.name() == 'STOCK_OUT' ? 'badge-stock-out' : 'bg-primary-subtle text-primary border')}"
+                                              th:text="${tx.transactionType}">STOCK_IN</span>
+                                    </td>
+                                    <td>
+                                        <span th:text="${tx.product.name}">Product</span><br>
+                                        <small class="text-muted font-monospace" th:text="${tx.product.productCode}">PRD-01</small>
+                                    </td>
+                                    <td class="fw-bold"
+                                        th:classappend="${tx.transactionType.name() == 'STOCK_IN' ? 'text-success' : 'text-danger'}"
+                                        th:text="${tx.transactionType.name() == 'STOCK_IN' ? '+' + tx.quantity : '-' + tx.quantity}">+10</td>
+                                    <td>
+                                        <span th:text="${tx.previousQuantity} + ' &rarr; ' + ${tx.newQuantity}">10 &rarr; 20</span>
+                                    </td>
+                                    <td><small class="text-muted" th:text="${#temporals.format(tx.createdAt, 'dd MMM HH:mm')}">24 Nov 14:00</small></td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(stats.recentTransactions)}">
+                                    <td colspan="5" class="text-center text-muted py-4">No recent stock movements recorded.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+
+<!-- Chart.js Initialization Script with Database Values -->
+<script th:inline="javascript">
+/*<![CDATA[*/
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Monthly Sales Bar Chart
+    const monthlyData = /*[[${stats.monthlySalesData}]]*/ {};
+    const months = Object.keys(monthlyData);
+    const revenues = Object.values(monthlyData);
+
+    const ctxSales = document.getElementById('monthlySalesChart').getContext('2d');
+    new Chart(ctxSales, {
+        type: 'bar',
+        data: {
+            labels: months.length > 0 ? months : ['No Sales Recorded'],
+            datasets: [{
+                label: 'Monthly Sales Revenue ($)',
+                data: revenues.length > 0 ? revenues : [0],
+                backgroundColor: 'rgba(37, 99, 235, 0.85)',
+                borderColor: '#1d4ed8',
+                borderWidth: 1,
+                borderRadius: 6,
+                maxBarThickness: 45
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function (ctx) {
+                            return ' Revenue: $' + Number(ctx.raw).toFixed(2);
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function (val) { return '$' + val; }
+                    },
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+
+    // 2. Category Distribution Doughnut Chart
+    const catData = /*[[${stats.categoryDistribution}]]*/ {};
+    const catLabels = Object.keys(catData);
+    const catCounts = Object.values(catData);
+
+    const ctxCat = document.getElementById('categoryDistributionChart').getContext('2d');
+    new Chart(ctxCat, {
+        type: 'doughnut',
+        data: {
+            labels: catLabels.length > 0 ? catLabels : ['Empty'],
+            datasets: [{
+                data: catCounts.length > 0 ? catCounts : [1],
+                backgroundColor: [
+                    '#2563eb', '#38bdf8', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { boxWidth: 12, font: { size: 11 } }
+                }
+            },
+            cutout: '68%'
+        }
+    });
+});
+/*]]>*/
+</script>
+
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Tax Invoice #' + ${sale.invoiceNumber})}"></head>
+<body>
+
+<aside th:replace="~{fragments/layout :: sidebar('sales')}"></aside>
+
+<div class="sm-main-wrapper">
+    <header th:replace="~{fragments/layout :: topbar('Tax Invoice & Payment Receipt')}"></header>
+
+    <main class="sm-content-area">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <a th:href="@{/sales}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Back to Sales Ledger
+            </a>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="window.print()">
+                    <i class="bi bi-printer me-1"></i> Print Receipt
+                </button>
+                <a th:href="@{/sales/new}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-lg me-1"></i> New Sale
+                </a>
+            </div>
+        </div>
+
+        <!-- Printable Invoice Sheet -->
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-9">
+                <div class="sm-card p-4 p-md-5" id="printableInvoice">
+                    <!-- Invoice Brand & Header -->
+                    <div class="row border-bottom pb-4 mb-4">
+                        <div class="col-6">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <div class="sm-brand-icon">
+                                    <i class="bi bi-boxes"></i>
+                                </div>
+                                <h3 class="fw-bold mb-0 text-dark">StockMaster</h3>
+                            </div>
+                            <p class="text-secondary small mb-0">
+                                Enterprise Inventory & Supply Chain Systems<br>
+                                100 University Boulevard, Tech Campus<br>
+                                GSTIN / Reg: 27AABCS1429B1Z
+                            </p>
+                        </div>
+                        <div class="col-6 text-end">
+                            <h4 class="fw-bold text-primary mb-1">TAX INVOICE</h4>
+                            <div class="font-monospace fw-bold fs-6" th:text="${sale.invoiceNumber}">INV-2026-0001</div>
+                            <small class="text-muted d-block" th:text="'Date: ' + ${#temporals.format(sale.saleDate, 'dd MMMM yyyy, HH:mm')}">24 Nov 2026</small>
+                            <span class="badge bg-success-subtle text-success border border-success mt-2">PAID &bull; <span th:text="${sale.paymentMethod}">CASH</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Customer Info -->
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <small class="text-muted fw-semibold text-uppercase d-block mb-1">Billed To:</small>
+                            <h6 class="fw-bold mb-1" th:text="${sale.customerName}">Customer Name</h6>
+                            <p class="text-secondary small mb-0" th:text="${sale.customerPhone != null && !sale.customerPhone.isBlank() ? sale.customerPhone : 'Walk-in Retail Customer'}">+91 98765 43210</p>
+                        </div>
+                        <div class="col-6 text-end">
+                            <small class="text-muted fw-semibold text-uppercase d-block mb-1">Payment Method:</small>
+                            <span class="badge bg-light text-dark border fs-6 font-monospace" th:text="${sale.paymentMethod}">CASH</span>
+                            <div th:if="${sale.notes != null && !sale.notes.isBlank()}" class="mt-2 text-muted small">
+                                <em>Notes: <span th:text="${sale.notes}">Notes</span></em>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Itemized Table -->
+                    <div class="table-responsive mb-4">
+                        <table class="table border">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Product Description</th>
+                                    <th>Code</th>
+                                    <th class="text-end">Unit Price</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-end">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="item, stat : ${sale.items}">
+                                    <td th:text="${stat.count}">1</td>
+                                    <td>
+                                        <strong th:text="${item.product.name}">Logitech Mouse</strong><br>
+                                        <small class="text-muted" th:text="${item.product.category}">Electronics</small>
+                                    </td>
+                                    <td><span class="font-monospace small text-secondary" th:text="${item.product.productCode}">ELC-1002</span></td>
+                                    <td class="text-end" th:text="'$' + ${#numbers.formatDecimal(item.unitPrice, 1, 'COMMA', 2, 'POINT')}">$99.99</td>
+                                    <td class="text-center fw-bold" th:text="${item.quantity}">2</td>
+                                    <td class="text-end fw-bold" th:text="'$' + ${#numbers.formatDecimal(item.subtotal, 1, 'COMMA', 2, 'POINT')}">$199.98</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Totals & Signoff -->
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded border">
+                                <h6 class="fw-bold small mb-1">System Verification</h6>
+                                <p class="text-muted small mb-0">
+                                    Inventory updated atomically in persistent MySQL database.
+                                    In-memory <strong>HashTable</strong>, <strong>AVL Tree</strong>, and <strong>Max Heap</strong> best-seller rankings synchronized.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Gross Amount:</span>
+                                <span class="fw-bold" th:text="'$' + ${#numbers.formatDecimal(sale.totalAmount, 1, 'COMMA', 2, 'POINT')}">$199.98</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Discount Applied:</span>
+                                <span class="text-danger fw-bold" th:text="'-$' + ${#numbers.formatDecimal(sale.discountAmount, 1, 'COMMA', 2, 'POINT')}">-$0.00</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fs-5 fw-bold">Net Final Total:</span>
+                                <span class="fs-4 fw-bold text-success" th:text="'$' + ${#numbers.formatDecimal(sale.netAmount, 1, 'COMMA', 2, 'POINT')}">$199.98</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+
+</body>
+</html>

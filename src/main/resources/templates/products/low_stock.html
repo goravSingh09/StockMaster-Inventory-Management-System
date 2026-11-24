@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Low Stock Alerts')}"></head>
+<body>
+
+<aside th:replace="~{fragments/layout :: sidebar('low-stock')}"></aside>
+
+<div class="sm-main-wrapper">
+    <header th:replace="~{fragments/layout :: topbar('Automated Low Stock & Depletion Alerts')}"></header>
+
+    <main class="sm-content-area">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <!-- Summary Banner -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-md-6">
+                <div class="sm-stat-card border-warning d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="sm-stat-label text-warning">Low Stock Items (&le; Min Threshold)</div>
+                        <div class="sm-stat-value text-warning" th:text="${lowStockProducts.size()}">4</div>
+                        <small class="text-muted">Requires immediate warehouse replenishment</small>
+                    </div>
+                    <div class="sm-stat-icon bg-warning-subtle text-warning">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <div class="sm-stat-card border-danger d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="sm-stat-label text-danger">Out-of-Stock Items (0 Units)</div>
+                        <div class="sm-stat-value text-danger" th:text="${outOfStockProducts.size()}">1</div>
+                        <small class="text-muted">Critical: Zero stock available for sales checkout</small>
+                    </div>
+                    <div class="sm-stat-icon bg-danger-subtle text-danger">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Low Stock Products Table -->
+        <div class="sm-card">
+            <div class="sm-card-header">
+                <div>
+                    <h6 class="sm-card-title text-danger mb-0"><i class="bi bi-bell-fill me-2"></i>Active Inventory Replenishment Alerts</h6>
+                    <small class="text-muted" style="font-size: 0.75rem;">Condition: Available Stock &le; Minimum Reorder Level</small>
+                </div>
+                <a th:href="@{/stock}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-arrow-down-circle me-1"></i> Quick Stock In
+                </a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table sm-table">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Code</th>
+                            <th>Product Name</th>
+                            <th>Category</th>
+                            <th class="text-center">Current Quantity</th>
+                            <th class="text-center">Min Threshold</th>
+                            <th>Supplier</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="product : ${lowStockProducts}">
+                            <td>
+                                <span th:if="${product.availableQuantity <= 0}" class="badge badge-out-of-stock">
+                                    <i class="bi bi-x-circle me-1"></i> Out of Stock
+                                </span>
+                                <span th:if="${product.availableQuantity > 0}" class="badge badge-low-stock">
+                                    <i class="bi bi-exclamation-triangle me-1"></i> Low Stock
+                                </span>
+                            </td>
+                            <td>
+                                <span class="font-monospace fw-bold" th:text="${product.productCode}">ELC-1006</span>
+                            </td>
+                            <td>
+                                <strong th:text="${product.name}">Sony WH-1000XM5</strong><br>
+                                <small class="text-muted" th:text="${product.description}">Description</small>
+                            </td>
+                            <td><span class="badge bg-light text-secondary border" th:text="${product.category}">Electronics</span></td>
+                            <td class="text-center">
+                                <span class="fs-6 fw-bold"
+                                      th:classappend="${product.availableQuantity <= 0 ? 'text-danger' : 'text-warning'}"
+                                      th:text="${product.availableQuantity}">4</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-secondary-subtle text-dark border" th:text="${product.minStockLevel}">10</span>
+                            </td>
+                            <td><small class="text-muted" th:text="${product.supplier}">Sony Electronics</small></td>
+                            <td class="text-end">
+                                <a th:href="@{/stock}" class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-plus-lg me-1"></i> Stock In
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(lowStockProducts)}">
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-check-circle fs-1 text-success d-block mb-2"></i>
+                                <h6>All inventory levels are healthy! Zero low-stock alerts.</h6>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+
+</body>
+</html>

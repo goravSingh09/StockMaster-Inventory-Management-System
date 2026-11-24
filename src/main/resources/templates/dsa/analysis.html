@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('DSA Performance Analysis & Benchmarks')}"></head>
+<body>
+
+<aside th:replace="~{fragments/layout :: sidebar('dsa-analysis')}"></aside>
+
+<div class="sm-main-wrapper">
+    <header th:replace="~{fragments/layout :: topbar('Data Structures & Algorithms Empirical Benchmarking')}"></header>
+
+    <main class="sm-content-area">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <!-- Academic Banner & Dataset Size Controller -->
+        <div class="sm-card mb-4">
+            <div class="sm-card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-12 col-lg-8">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6"><i class="bi bi-speedometer2 me-1"></i>Empirical DSA Evaluation</span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle">Core Java Native Implementations</span>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-1">Algorithmic Complexity & Benchmark Lab</h4>
+                        <p class="text-secondary small mb-0">
+                            Evaluates actual runtime performance using Java's high-precision <code>System.nanoTime()</code>.
+                            Each data point is averaged across <strong>40 trials</strong> following a JIT warm-up phase to eliminate compiler compilation noise.
+                        </p>
+                    </div>
+
+                    <div class="col-12 col-lg-4 text-lg-end mt-3 mt-lg-0">
+                        <label class="form-label small fw-semibold text-muted d-block mb-1">Select Benchmark Dataset Size:</label>
+                        <div class="btn-group" role="group">
+                            <a th:href="@{/dsa-analysis(size=100)}" class="btn btn-sm"
+                               th:classappend="${datasetSize == 100} ? 'btn-primary' : 'btn-outline-primary'">100 Items</a>
+                            <a th:href="@{/dsa-analysis(size=1000)}" class="btn btn-sm"
+                               th:classappend="${datasetSize == 1000} ? 'btn-primary' : 'btn-outline-primary'">1,000 Items</a>
+                            <a th:href="@{/dsa-analysis(size=5000)}" class="btn btn-sm"
+                               th:classappend="${datasetSize == 5000} ? 'btn-primary' : 'btn-outline-primary'">5,000 Items</a>
+                            <a th:href="@{/dsa-analysis(size=10000)}" class="btn btn-sm"
+                               th:classappend="${datasetSize == 10000} ? 'btn-primary' : 'btn-outline-primary'">10,000 Items</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row: Search Benchmark & Sorting Benchmark -->
+        <div class="row g-4 mb-4">
+            <!-- Search Algorithms Execution Time Chart -->
+            <div class="col-12 col-lg-6">
+                <div class="sm-card h-100">
+                    <div class="sm-card-header">
+                        <div>
+                            <h6 class="sm-card-title"><i class="bi bi-search text-primary me-2"></i>Search Algorithms Comparison</h6>
+                            <small class="text-muted" style="font-size: 0.75rem;">Dataset Size: <strong th:text="${datasetSize}">1,000</strong> elements &bull; Lower is Faster (ns)</small>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary border">System.nanoTime()</span>
+                    </div>
+                    <div class="sm-card-body">
+                        <div style="height: 280px;">
+                            <canvas id="searchChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sorting Algorithms Execution Time Chart -->
+            <div class="col-12 col-lg-6">
+                <div class="sm-card h-100">
+                    <div class="sm-card-header">
+                        <div>
+                            <h6 class="sm-card-title"><i class="bi bi-sort-numeric-down text-info me-2"></i>Merge Sort vs Quick Sort</h6>
+                            <small class="text-muted" style="font-size: 0.75rem;">Dataset Size: <strong th:text="${datasetSize}">1,000</strong> elements &bull; Execution Time (ns)</small>
+                        </div>
+                        <span class="badge bg-info-subtle text-info border">Comparison</span>
+                    </div>
+                    <div class="sm-card-body">
+                        <div style="height: 280px;">
+                            <canvas id="sortChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Algorithms Benchmark Data Table -->
+        <div class="sm-card mb-4">
+            <div class="sm-card-header">
+                <h6 class="sm-card-title"><i class="bi bi-table text-primary me-2"></i>Search Algorithms Empirical Results (<span th:text="${datasetSize}">1000</span> Items)</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table sm-table">
+                    <thead>
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Time Complexity</th>
+                            <th>Space Complexity</th>
+                            <th class="text-end">Average Time (ns)</th>
+                            <th class="text-end">Average Time (ms)</th>
+                            <th class="text-end">Min / Max (ns)</th>
+                            <th>Algorithmic Mechanism</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="r : ${searchResults}">
+                            <td>
+                                <strong class="text-dark" th:text="${r.algorithmName}">Hash Table Search</strong>
+                            </td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${r.timeComplexity.contains('O(1)') ? 'bg-success text-white' : (r.timeComplexity.contains('O(log N)') ? 'bg-primary text-white' : 'bg-danger text-white')}"
+                                      th:text="${r.timeComplexity}">O(1)</span>
+                            </td>
+                            <td><span class="badge bg-light text-secondary border" th:text="${r.spaceComplexity}">O(1)</span></td>
+                            <td class="text-end font-monospace fw-bold text-primary" th:text="${#numbers.formatInteger(r.averageTimeNs, 1, 'COMMA')} + ' ns'">
+                                4,500 ns
+                            </td>
+                            <td class="text-end font-monospace text-muted" th:text="${#numbers.formatDecimal(r.averageTimeMs, 1, 'COMMA', 4, 'POINT')} + ' ms'">
+                                0.0045 ms
+                            </td>
+                            <td class="text-end small text-muted font-monospace" th:text="${#numbers.formatInteger(r.minTimeNs, 1, 'COMMA')} + ' / ' + ${#numbers.formatInteger(r.maxTimeNs, 1, 'COMMA')}">
+                                3,200 / 9,400
+                            </td>
+                            <td>
+                                <small class="text-secondary" th:text="${r.notes}">Algorithm explanation</small>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Sorting Algorithms Benchmark Data Table -->
+        <div class="sm-card mb-4">
+            <div class="sm-card-header">
+                <h6 class="sm-card-title"><i class="bi bi-table text-info me-2"></i>Sorting Algorithms Empirical Results (<span th:text="${datasetSize}">1000</span> Items)</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table sm-table">
+                    <thead>
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Time Complexity</th>
+                            <th>Space Complexity</th>
+                            <th class="text-end">Average Time (ns)</th>
+                            <th class="text-end">Average Time (ms)</th>
+                            <th class="text-end">Min / Max (ns)</th>
+                            <th>Algorithmic Mechanism</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="s : ${sortResults}">
+                            <td>
+                                <strong class="text-dark" th:text="${s.algorithmName}">Merge Sort</strong>
+                            </td>
+                            <td><span class="badge bg-info text-white" th:text="${s.timeComplexity}">O(N log N)</span></td>
+                            <td><span class="badge bg-light text-secondary border" th:text="${s.spaceComplexity}">O(N)</span></td>
+                            <td class="text-end font-monospace fw-bold text-info" th:text="${#numbers.formatInteger(s.averageTimeNs, 1, 'COMMA')} + ' ns'">
+                                125,000 ns
+                            </td>
+                            <td class="text-end font-monospace text-muted" th:text="${#numbers.formatDecimal(s.averageTimeMs, 1, 'COMMA', 4, 'POINT')} + ' ms'">
+                                0.1250 ms
+                            </td>
+                            <td class="text-end small text-muted font-monospace" th:text="${#numbers.formatInteger(s.minTimeNs, 1, 'COMMA')} + ' / ' + ${#numbers.formatInteger(s.maxTimeNs, 1, 'COMMA')}">
+                                90,000 / 220,000
+                            </td>
+                            <td>
+                                <small class="text-secondary" th:text="${s.notes}">Sorting mechanism explanation</small>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Technical Viva & Academic Notes Box -->
+        <div class="sm-card border-secondary">
+            <div class="sm-card-header bg-light">
+                <h6 class="sm-card-title"><i class="bi bi-lightbulb-fill text-warning me-2"></i>Technical Viva Note: Empirical vs. Asymptotic Analysis</h6>
+            </div>
+            <div class="sm-card-body small text-secondary">
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <h6 class="fw-bold text-dark mb-1">Why do timings fluctuate between executions?</h6>
+                        <p class="mb-0">
+                            In modern Java Virtual Machines, execution speed is influenced by:
+                            <strong>Just-In-Time (JIT) Tiered Compilation (C1/C2 compilers)</strong>,
+                            <strong>Garbage Collection (GC) pauses</strong>, and
+                            <strong>CPU Hardware Cache (L1/L2/L3) line hits</strong>.
+                            StockMaster applies a pre-benchmark warm-up loop and computes arithmetic averages across 40 trials to yield statistically rigorous measurements.
+                        </p>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <h6 class="fw-bold text-dark mb-1">Why is Quick Sort often empirically faster than Merge Sort?</h6>
+                        <p class="mb-0">
+                            While both boast <code>O(N log N)</code> average time complexity, Quick Sort sorts <em>in-place</em>
+                            with excellent <strong>spatial CPU cache locality</strong> and minimal auxiliary allocations (<code>O(log N)</code> stack).
+                            Merge Sort requires allocating an auxiliary buffer array of size <code>O(N)</code>, introducing slight heap copying overhead.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+
+<!-- Interactive Chart.js Script for Benchmarking -->
+<script th:inline="javascript">
+/*<![CDATA[*/
+document.addEventListener('DOMContentLoaded', function () {
+    const searchData = /*[[${searchResults}]]*/ [];
+    const sortData = /*[[${sortResults}]]*/ [];
+
+    // 1. Search Bar Chart (Execution Time in Nanoseconds)
+    const searchLabels = searchData.map(d => d.algorithmName);
+    const searchTimes = searchData.map(d => d.averageTimeNs);
+
+    const ctxSearch = document.getElementById('searchChart').getContext('2d');
+    new Chart(ctxSearch, {
+        type: 'bar',
+        data: {
+            labels: searchLabels,
+            datasets: [{
+                label: 'Average Execution Time (ns)',
+                data: searchTimes,
+                backgroundColor: [
+                    'rgba(239, 68, 68, 0.85)',   // Linear Search (Red)
+                    'rgba(59, 130, 246, 0.85)',  // Binary Search (Blue)
+                    'rgba(139, 92, 246, 0.85)',  // AVL Tree (Purple)
+                    'rgba(16, 185, 129, 0.85)'   // Hash Table (Green)
+                ],
+                borderRadius: 6,
+                maxBarThickness: 50
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function (ctx) {
+                            return ' ' + Number(ctx.raw).toLocaleString() + ' nanoseconds';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Time (Nanoseconds)' },
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+
+    // 2. Sorting Bar Chart (Merge Sort vs Quick Sort in Nanoseconds)
+    const sortLabels = sortData.map(d => d.algorithmName);
+    const sortTimes = sortData.map(d => d.averageTimeNs);
+
+    const ctxSort = document.getElementById('sortChart').getContext('2d');
+    new Chart(ctxSort, {
+        type: 'bar',
+        data: {
+            labels: sortLabels,
+            datasets: [{
+                label: 'Average Execution Time (ns)',
+                data: sortTimes,
+                backgroundColor: [
+                    'rgba(14, 165, 233, 0.85)',  // Merge Sort (Sky)
+                    'rgba(245, 158, 11, 0.85)'   // Quick Sort (Amber)
+                ],
+                borderRadius: 6,
+                maxBarThickness: 65
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function (ctx) {
+                            return ' ' + Number(ctx.raw).toLocaleString() + ' nanoseconds';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Time (Nanoseconds)' },
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+});
+/*]]>*/
+</script>
+
+</body>
+</html>

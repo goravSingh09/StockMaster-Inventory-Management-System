@@ -1,0 +1,344 @@
+/* ===================================================================
+   StockMaster - Modern Professional SaaS Dashboard Styling
+   Color Palette:
+   - Sidebar/Dark Navy: #0f172a, #1e293b, #334155
+   - Brand Blue: #2563eb, #1d4ed8, #3b82f6
+   - Background Light: #f8fafc, #f1f5f9
+   - Text Dark: #0f172a, #1e293b, #475569
+   - Border Subtle: #e2e8f0
+   - Accent Success: #10b981
+   - Accent Warning: #f59e0b
+   - Accent Danger: #ef4444
+   =================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --sm-navy-dark: #0f172a;
+    --sm-navy-medium: #1e293b;
+    --sm-navy-light: #334155;
+    --sm-blue-primary: #2563eb;
+    --sm-blue-hover: #1d4ed8;
+    --sm-blue-subtle: #eff6ff;
+    --sm-bg-body: #f8fafc;
+    --sm-card-bg: #ffffff;
+    --sm-border: #e2e8f0;
+    --sm-text-main: #0f172a;
+    --sm-text-muted: #64748b;
+    --sm-sidebar-width: 260px;
+    --sm-topbar-height: 64px;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--sm-bg-body);
+    color: var(--sm-text-main);
+    overflow-x: hidden;
+}
+
+/* Sidebar Styling */
+.sm-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: var(--sm-sidebar-width);
+    background-color: var(--sm-navy-dark);
+    color: #cbd5e1;
+    z-index: 1040;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 4px 0 16px rgba(15, 23, 42, 0.15);
+    transition: all 0.3s ease;
+}
+
+.sm-brand {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sm-brand-icon {
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, #2563eb, #38bdf8);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+}
+
+.sm-brand-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.sm-brand-badge {
+    font-size: 0.65rem;
+    background-color: rgba(37, 99, 235, 0.25);
+    color: #60a5fa;
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: auto;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.sm-nav-section-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+    padding: 1rem 1.5rem 0.4rem;
+}
+
+.sm-sidebar-nav {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 0.5rem 0.75rem;
+}
+
+.sm-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.65rem 1rem;
+    color: #94a3b8;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    margin-bottom: 2px;
+}
+
+.sm-nav-link i {
+    font-size: 1.15rem;
+    width: 20px;
+    text-align: center;
+}
+
+.sm-nav-link:hover {
+    color: #ffffff;
+    background-color: var(--sm-navy-medium);
+}
+
+.sm-nav-link.active {
+    color: #ffffff;
+    background: linear-gradient(90deg, #2563eb, #1d4ed8);
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.sm-sidebar-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: rgba(15, 23, 42, 0.6);
+}
+
+.sm-user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: var(--sm-navy-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #60a5fa;
+    border: 2px solid rgba(96, 165, 250, 0.2);
+}
+
+/* Main Content Wrapper */
+.sm-main-wrapper {
+    margin-left: var(--sm-sidebar-width);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Top Navigation Bar */
+.sm-topbar {
+    height: var(--sm-topbar-height);
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--sm-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.75rem;
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.sm-content-area {
+    padding: 1.75rem;
+    flex-grow: 1;
+}
+
+/* Statistics & Metric Cards */
+.sm-stat-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid var(--sm-border);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sm-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.sm-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+}
+
+.sm-stat-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sm-text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.sm-stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--sm-text-main);
+    line-height: 1.2;
+}
+
+/* Custom Card Containers */
+.sm-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid var(--sm-border);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+.sm-card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--sm-border);
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sm-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--sm-text-main);
+}
+
+.sm-card-body {
+    padding: 1.5rem;
+}
+
+/* Table Design */
+.sm-table {
+    margin-bottom: 0;
+}
+
+.sm-table thead th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--sm-border);
+    padding: 0.75rem 1rem;
+    white-space: nowrap;
+}
+
+.sm-table tbody td {
+    padding: 0.85rem 1rem;
+    font-size: 0.875rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.sm-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Stock Status Badges */
+.badge-stock-in {
+    background-color: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+}
+
+.badge-stock-out {
+    background-color: #fff1f2;
+    color: #e11d48;
+    border: 1px solid #fecdd3;
+}
+
+.badge-low-stock {
+    background-color: #fffbeb;
+    color: #d97706;
+    border: 1px solid #fde68a;
+}
+
+.badge-out-of-stock {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.badge-in-stock {
+    background-color: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--sm-blue-primary);
+    border-color: var(--sm-blue-primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--sm-blue-hover);
+    border-color: var(--sm-blue-hover);
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+    .sm-sidebar {
+        transform: translateX(-100%);
+    }
+    .sm-sidebar.show {
+        transform: translateX(0);
+    }
+    .sm-main-wrapper {
+        margin-left: 0;
+    }
+}

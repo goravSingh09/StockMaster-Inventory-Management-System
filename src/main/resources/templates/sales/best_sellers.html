@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Top Best-Selling Products — Custom MaxHeap')}"></head>
+<body>
+
+<aside th:replace="~{fragments/layout :: sidebar('best-sellers')}"></aside>
+
+<div class="sm-main-wrapper">
+    <header th:replace="~{fragments/layout :: topbar('Best-Selling Products Ranking — Custom Max Heap')}"></header>
+
+    <main class="sm-content-area">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <!-- Academic Max Heap Explanation Banner -->
+        <div class="sm-card mb-4">
+            <div class="sm-card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-12 col-md-8">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-warning-subtle text-warning border border-warning fs-6"><i class="bi bi-trophy-fill me-1"></i>Max Heap Priority Queue</span>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Floyd's O(N) BuildHeap & O(K log N) Top-K Selection</span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-1">Product Ranking Engine</h5>
+                        <p class="text-secondary small mb-0">
+                            Instead of performing an expensive O(N log N) full sort of the product database, StockMaster maintains a
+                            <strong>Custom Max Heap</strong> where each node satisfies the invariant <code>Parent.unitsSold &ge; Children.unitsSold</code>.
+                            Top-K selection runs in <strong>O(K log N)</strong> time, making it scalable for large enterprise catalogs.
+                        </p>
+                    </div>
+                    <div class="col-12 col-md-4 text-md-end mt-3 mt-md-0">
+                        <!-- Top 5 / Top 10 Toggle -->
+                        <div class="btn-group" role="group">
+                            <a th:href="@{/sales/best-sellers(limit=5)}" class="btn btn-sm"
+                               th:classappend="${limit == 5} ? 'btn-primary' : 'btn-outline-primary'">Top 5 Products</a>
+                            <a th:href="@{/sales/best-sellers(limit=10)}" class="btn btn-sm"
+                               th:classappend="${limit == 10} ? 'btn-primary' : 'btn-outline-primary'">Top 10 Products</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Best Sellers Leaderboard Table -->
+        <div class="sm-card">
+            <div class="sm-card-header">
+                <div>
+                    <h6 class="sm-card-title mb-0">
+                        <i class="bi bi-award-fill text-warning me-2"></i>
+                        Showing Top <span th:text="${limit}">10</span> Products by Units Sold
+                    </h6>
+                    <small class="text-muted" style="font-size: 0.75rem;">Derived dynamically from actual customer sales records</small>
+                </div>
+                <a th:href="@{/sales/new}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-cart-plus me-1"></i> Record New Sale
+                </a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table sm-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 10%;">Rank</th>
+                            <th style="width: 15%;">Product Code</th>
+                            <th style="width: 35%;">Product Name</th>
+                            <th style="width: 15%;">Category</th>
+                            <th style="width: 12%;" class="text-end">Units Sold</th>
+                            <th style="width: 13%;" class="text-end">Gross Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="product, stat : ${bestSellers}">
+                            <td>
+                                <span th:if="${stat.index == 0}" class="badge bg-warning text-dark fs-6">
+                                    <i class="bi bi-trophy-fill me-1"></i> #1 Gold
+                                </span>
+                                <span th:if="${stat.index == 1}" class="badge bg-secondary text-white fs-6">
+                                    <i class="bi bi-award me-1"></i> #2 Silver
+                                </span>
+                                <span th:if="${stat.index == 2}" class="badge bg-danger-subtle text-danger border border-danger-subtle fs-6">
+                                    <i class="bi bi-award me-1"></i> #3 Bronze
+                                </span>
+                                <span th:if="${stat.index >= 3}" class="badge bg-light text-dark border" th:text="'#' + ${stat.count}">
+                                    #4
+                                </span>
+                            </td>
+                            <td>
+                                <span class="font-monospace fw-bold text-dark" th:text="${product.productCode}">ELC-1002</span>
+                            </td>
+                            <td>
+                                <strong th:text="${product.productName}">Product Name</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-secondary border" th:text="${product.category}">Electronics</span>
+                            </td>
+                            <td class="text-end">
+                                <span class="fw-bold fs-6 text-primary" th:text="${product.unitsSold} + ' units'">15 units</span>
+                            </td>
+                            <td class="text-end">
+                                <span class="fw-bold text-success fs-6" th:text="'$' + ${#numbers.formatDecimal(product.totalRevenue, 1, 'COMMA', 2, 'POINT')}">$1,499.85</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(bestSellers)}">
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                                <h6>No sales transactions available to rank products.</h6>
+                                <p class="small text-muted mb-3">Record customer sales to generate rankings via Max Heap.</p>
+                                <a th:href="@{/sales/new}" class="btn btn-sm btn-primary">Create a Sale</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+
+</body>
+</html>

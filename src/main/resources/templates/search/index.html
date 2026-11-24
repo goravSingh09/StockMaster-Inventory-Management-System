@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Advanced Product Search')}"></head>
+<body>
+
+<aside th:replace="~{fragments/layout :: sidebar('search')}"></aside>
+
+<div class="sm-main-wrapper">
+    <header th:replace="~{fragments/layout :: topbar('Advanced Product Search & Algorithm Engine')}"></header>
+
+    <main class="sm-content-area">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <!-- Academic Search Header -->
+        <div class="sm-card mb-4">
+            <div class="sm-card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-12 col-lg-8">
+                        <h5 class="fw-bold text-dark mb-1"><i class="bi bi-cpu-fill text-primary me-2"></i>Algorithmic Search Workbench</h5>
+                        <p class="text-secondary small mb-0">
+                            Perform and compare actual lookups across <strong>Hash Table O(1)</strong>,
+                            <strong>AVL Tree O(log N)</strong>, <strong>Binary Search O(log N)</strong>, and
+                            <strong>Linear Search O(N)</strong> baseline with real nanosecond benchmarks.
+                        </p>
+                    </div>
+                    <div class="col-12 col-lg-4 text-lg-end mt-3 mt-lg-0">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle p-2">
+                            <i class="bi bi-stopwatch me-1"></i> Live System.nanoTime() Benchmarking
+                        </span>
+                    </div>
+                </div>
+
+                <hr class="my-3">
+
+                <!-- Search Form -->
+                <form th:action="@{/search}" method="post" th:object="${searchRequest}">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-12 col-md-5">
+                            <label for="query" class="form-label fw-semibold small">Product Code or Keyword <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" th:field="*{query}" id="query"
+                                       placeholder="e.g. ELC-1002, STA-2001, GRO-3001..." required autofocus>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label for="algorithm" class="form-label fw-semibold small">Search Algorithm</label>
+                            <select class="form-select" th:field="*{algorithm}" id="algorithm">
+                                <option th:each="algo : ${algorithms}" th:value="${algo}"
+                                        th:text="${algo.displayName} + ' (' + ${algo.complexity} + ')'"></option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                                <i class="bi bi-play-circle-fill me-1"></i> Execute Search
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quick suggestions -->
+                    <div class="mt-3 d-flex align-items-center gap-2 flex-wrap">
+                        <small class="text-muted fw-semibold">Quick Test Codes:</small>
+                        <a href="javascript:void(0)" class="badge bg-light text-secondary border text-decoration-none" onclick="setQuery('ELC-1001')">ELC-1001 (MacBook)</a>
+                        <a href="javascript:void(0)" class="badge bg-light text-secondary border text-decoration-none" onclick="setQuery('ELC-1002')">ELC-1002 (Logitech Mouse)</a>
+                        <a href="javascript:void(0)" class="badge bg-light text-secondary border text-decoration-none" onclick="setQuery('STA-2001')">STA-2001 (Leuchtturm)</a>
+                        <a href="javascript:void(0)" class="badge bg-light text-secondary border text-decoration-none" onclick="setQuery('GRO-3001')">GRO-3001 (Coffee)</a>
+                        <a href="javascript:void(0)" class="badge bg-light text-secondary border text-decoration-none" onclick="setQuery('HAP-5001')">HAP-5001 (Desk Fan)</a>
+                        <a href="javascript:void(0)" class="badge bg-danger-subtle text-danger border text-decoration-none" onclick="setQuery('PRD-9999')">PRD-9999 (Missing)</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Search Results Card (if search executed) -->
+        <div th:if="${searchResponse != null}" class="mb-4">
+            <!-- Algorithmic Metric Header -->
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-md-3">
+                    <div class="sm-stat-card border-primary">
+                        <div class="sm-stat-label">Algorithm Executed</div>
+                        <div class="fs-5 fw-bold text-primary" th:text="${searchResponse.algorithmUsed}">Hash Table Search</div>
+                        <small class="text-muted" th:text="${searchResponse.algorithmDescription}">Bucket indexing</small>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <div class="sm-stat-card border-info">
+                        <div class="sm-stat-label">Time Complexity</div>
+                        <div class="fs-4 fw-bold text-info" th:text="${searchResponse.timeComplexity}">O(1) Average</div>
+                        <small class="text-muted">Theoretical asymptotic limit</small>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <div class="sm-stat-card border-success">
+                        <div class="sm-stat-label">Execution Duration</div>
+                        <div class="fs-4 fw-bold text-success" th:text="${searchResponse.executionTimeNs} + ' ns'">4,500 ns</div>
+                        <small class="text-muted" th:text="${#numbers.formatDecimal(searchResponse.executionTimeMs, 1, 'COMMA', 4, 'POINT')} + ' ms'">0.0045 ms</small>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <div class="sm-stat-card border-secondary">
+                        <div class="sm-stat-label">Element Comparisons</div>
+                        <div class="fs-4 fw-bold text-dark" th:text="${searchResponse.comparisonCount}">1</div>
+                        <small class="text-muted">Operations / steps performed</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Card: Found -->
+            <div th:if="${searchResponse.found}" class="sm-card border-success">
+                <div class="sm-card-header bg-success-subtle text-success">
+                    <h6 class="sm-card-title text-success"><i class="bi bi-check-circle-fill me-2"></i>Match Located Successfully!</h6>
+                    <span class="badge bg-success text-white font-monospace" th:text="${searchResponse.product.productCode}">ELC-1002</span>
+                </div>
+                <div class="sm-card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-8">
+                            <h4 class="fw-bold mb-1" th:text="${searchResponse.product.name}">Logitech MX Master 3S Mouse</h4>
+                            <p class="text-muted mb-3" th:text="${searchResponse.product.description}">Product description</p>
+
+                            <div class="d-flex gap-3 flex-wrap">
+                                <div>
+                                    <small class="text-muted d-block">Category:</small>
+                                    <span class="badge bg-light text-dark border" th:text="${searchResponse.product.category}">Electronics</span>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Cost Price:</small>
+                                    <span class="fw-bold" th:text="'$' + ${#numbers.formatDecimal(searchResponse.product.purchasePrice, 1, 'COMMA', 2, 'POINT')}">$65.00</span>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Selling Price:</small>
+                                    <span class="fw-bold text-primary" th:text="'$' + ${#numbers.formatDecimal(searchResponse.product.sellingPrice, 1, 'COMMA', 2, 'POINT')}">$99.99</span>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Available Stock:</small>
+                                    <span class="fw-bold fs-6" th:text="${searchResponse.product.availableQuantity} + ' units'">45 units</span>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Supplier:</small>
+                                    <span class="text-secondary" th:text="${searchResponse.product.supplier}">Logitech</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4 d-flex flex-column justify-content-center align-items-md-end gap-2 border-start-md">
+                            <a th:href="@{/stock}" class="btn btn-outline-success w-100 w-md-auto">
+                                <i class="bi bi-arrow-left-right me-1"></i> Stock Adjustment
+                            </a>
+                            <a th:href="@{/products/{id}/edit(id=${searchResponse.product.id})}" class="btn btn-outline-secondary w-100 w-md-auto">
+                                <i class="bi bi-pencil-fill me-1"></i> Edit Product
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Card: Not Found -->
+            <div th:if="${!searchResponse.found}" class="sm-card border-danger">
+                <div class="sm-card-header bg-danger-subtle text-danger">
+                    <h6 class="sm-card-title text-danger"><i class="bi bi-x-circle-fill me-2"></i>No Matching Product Located</h6>
+                </div>
+                <div class="sm-card-body text-center py-4">
+                    <i class="bi bi-search text-danger fs-1 mb-2 d-block"></i>
+                    <h5>Product key '<span th:text="${searchResponse.query}">XYZ</span>' was not found in the catalog.</h5>
+                    <p class="text-muted small">
+                        The requested code was evaluated through <strong th:text="${searchResponse.algorithmUsed}">the chosen algorithm</strong>
+                        and returned <code>null</code> after <strong th:text="${searchResponse.comparisonCount}">N</strong> comparisons in
+                        <strong th:text="${searchResponse.executionTimeNs}">0</strong> ns.
+                    </p>
+                    <a th:href="@{/products/new}" class="btn btn-sm btn-primary">Add As New Product</a>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+
+<script>
+function setQuery(code) {
+    document.getElementById('query').value = code;
+}
+</script>
+
+</body>
+</html>

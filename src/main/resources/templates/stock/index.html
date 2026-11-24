@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Stock Management')}"></head>
+<body>
+
+<aside th:replace="~{fragments/layout :: sidebar('stock')}"></aside>
+
+<div class="sm-main-wrapper">
+    <header th:replace="~{fragments/layout :: topbar('Stock Management — Stock In / Out')}"></header>
+
+    <main class="sm-content-area">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <div class="row g-4">
+            <!-- Stock Operation Form -->
+            <div class="col-12 col-lg-5">
+                <div class="sm-card">
+                    <div class="sm-card-header">
+                        <h6 class="sm-card-title"><i class="bi bi-arrow-left-right text-primary me-2"></i>Execute Stock Movement</h6>
+                    </div>
+                    <div class="sm-card-body">
+                        <form th:action="@{/stock}" th:object="${stockDto}" method="post">
+                            <!-- Operation Type Selection -->
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small">Movement Type <span class="text-danger">*</span></label>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <input type="radio" class="btn-check" name="transactionType" id="typeIn"
+                                               value="STOCK_IN" th:checked="${stockDto.transactionType == null || stockDto.transactionType.name() == 'STOCK_IN'}">
+                                        <label class="btn btn-outline-success w-100 py-2 d-flex align-items-center justify-content-center gap-2" for="typeIn">
+                                            <i class="bi bi-box-arrow-in-down fs-5"></i>
+                                            <span class="fw-semibold">Stock In (+)</span>
+                                        </label>
+                                    </div>
+                                    <div class="col-6">
+                                        <input type="radio" class="btn-check" name="transactionType" id="typeOut"
+                                               value="STOCK_OUT" th:checked="${stockDto.transactionType != null && stockDto.transactionType.name() == 'STOCK_OUT'}">
+                                        <label class="btn btn-outline-danger w-100 py-2 d-flex align-items-center justify-content-center gap-2" for="typeOut">
+                                            <i class="bi bi-box-arrow-up fs-5"></i>
+                                            <span class="fw-semibold">Stock Out (&minus;)</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Target Product Dropdown -->
+                            <div class="mb-3">
+                                <label for="productId" class="form-label fw-semibold small">Select Product <span class="text-danger">*</span></label>
+                                <select class="form-select" th:field="*{productId}" id="productId" required onchange="updateStockPreview()">
+                                    <option value="">-- Choose Product --</option>
+                                    <option th:each="p : ${products}" th:value="${p.id}"
+                                            th:data-stock="${p.availableQuantity}"
+                                            th:data-code="${p.productCode}"
+                                            th:text="${p.productCode} + ' — ' + ${p.name} + ' (Current: ' + ${p.availableQuantity} + ' units)'"></option>
+                                </select>
+                                <div class="invalid-feedback" th:errors="*{productId}">Product selection is required</div>
+                            </div>
+
+                            <!-- Live Stock Level Indicator -->
+                            <div id="stockPreviewBox" class="alert alert-secondary py-2 small d-none mb-3">
+                                <div class="d-flex justify-content-between">
+                                    <span>Current Stock: <strong id="lblCurrentStock">0</strong> units</span>
+                                    <span>Resulting Stock: <strong id="lblResultingStock" class="text-primary">0</strong> units</span>
+                                </div>
+                            </div>
+
+                            <!-- Quantity -->
+                            <div class="mb-3">
+                                <label for="quantity" class="form-label fw-semibold small">Quantity to Move <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" th:field="*{quantity}" id="quantity"
+                                       min="1" placeholder="Enter units (e.g. 25)" required oninput="updateStockPreview()">
+                                <div class="invalid-feedback" th:errors="*{quantity}">Valid positive quantity required</div>
+                                <small class="text-muted" style="font-size: 0.72rem;">Negative stock balances are strictly blocked by transactional validation.</small>
+                            </div>
+
+                            <!-- Reference Number -->
+                            <div class="mb-3">
+                                <label for="referenceNumber" class="form-label fw-semibold small">Reference / PO Number</label>
+                                <input type="text" class="form-control" th:field="*{referenceNumber}" id="referenceNumber"
+                                       placeholder="e.g. PO-2026-904, INV-8921...">
+                            </div>
+
+                            <!-- Reason / Description -->
+                            <div class="mb-4">
+                                <label for="reason" class="form-label fw-semibold small">Transaction Reason / Notes</label>
+                                <textarea class="form-control" th:field="*{reason}" id="reason" rows="2"
+                                          placeholder="Supplier shipment arrival, damaged goods write-off, internal transfer..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                                <i class="bi bi-check2-circle me-1"></i> Post Stock Movement & Update DSA
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Stock Movements Audit Trail -->
+            <div class="col-12 col-lg-7">
+                <div class="sm-card">
+                    <div class="sm-card-header">
+                        <div>
+                            <h6 class="sm-card-title mb-0"><i class="bi bi-clock-history me-2 text-secondary"></i>Recent Stock Movements</h6>
+                            <small class="text-muted" style="font-size: 0.75rem;">Real-time database audit log</small>
+                        </div>
+                        <a th:href="@{/history}" class="btn btn-sm btn-outline-secondary">View Full History</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table sm-table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Product</th>
+                                    <th class="text-end">Units</th>
+                                    <th>Stock Delta</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="tx : ${recentTransactions}">
+                                    <td>
+                                        <span class="badge"
+                                              th:classappend="${tx.transactionType.name() == 'STOCK_IN' ? 'badge-stock-in' : (tx.transactionType.name() == 'STOCK_OUT' ? 'badge-stock-out' : 'bg-primary-subtle text-primary border')}"
+                                              th:text="${tx.transactionType}">STOCK_IN</span>
+                                    </td>
+                                    <td>
+                                        <strong th:text="${tx.product.name}">Product</strong><br>
+                                        <small class="text-muted font-monospace" th:text="${tx.product.productCode}">PRD-101</small>
+                                    </td>
+                                    <td class="text-end fw-bold"
+                                        th:classappend="${tx.transactionType.name() == 'STOCK_IN' ? 'text-success' : 'text-danger'}"
+                                        th:text="${tx.transactionType.name() == 'STOCK_IN' ? '+' + tx.quantity : '-' + tx.quantity}">+10</td>
+                                    <td>
+                                        <span class="text-muted small" th:text="${tx.previousQuantity} + ' &rarr; '"></span>
+                                        <strong th:text="${tx.newQuantity}">20</strong>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted" th:text="${#temporals.format(tx.createdAt, 'dd MMM HH:mm')}">24 Nov 15:30</small><br>
+                                        <small class="text-secondary" style="font-size: 0.7rem;" th:text="${tx.createdBy}">Admin</small>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(recentTransactions)}">
+                                    <td colspan="5" class="text-center py-4 text-muted">No stock movements logged yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+
+<script>
+function updateStockPreview() {
+    const productSelect = document.getElementById('productId');
+    const selectedOption = productSelect.options[productSelect.selectedIndex];
+    const qtyInput = document.getElementById('quantity');
+    const previewBox = document.getElementById('stockPreviewBox');
+    const isStockIn = document.getElementById('typeIn').checked;
+
+    if (!selectedOption || !selectedOption.value) {
+        previewBox.classList.add('d-none');
+        return;
+    }
+
+    const currentStock = parseInt(selectedOption.getAttribute('data-stock') || '0', 10);
+    const moveQty = parseInt(qtyInput.value || '0', 10);
+    const resulting = isStockIn ? (currentStock + moveQty) : (currentStock - moveQty);
+
+    document.getElementById('lblCurrentStock').innerText = currentStock;
+    const resLbl = document.getElementById('lblResultingStock');
+    resLbl.innerText = resulting;
+
+    if (resulting < 0) {
+        resLbl.className = 'text-danger fw-bold';
+        previewBox.className = 'alert alert-danger py-2 small mb-3';
+    } else {
+        resLbl.className = 'text-primary fw-bold';
+        previewBox.className = 'alert alert-secondary py-2 small mb-3';
+    }
+
+    previewBox.classList.remove('d-none');
+}
+
+document.getElementById('typeIn').addEventListener('change', updateStockPreview);
+document.getElementById('typeOut').addEventListener('change', updateStockPreview);
+</script>
+
+</body>
+</html>

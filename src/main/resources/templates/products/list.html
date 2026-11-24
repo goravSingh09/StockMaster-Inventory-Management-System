@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Product Catalog')}"></head>
+<body>
+
+<aside th:replace="~{fragments/layout :: sidebar('products')}"></aside>
+
+<div class="sm-main-wrapper">
+    <header th:replace="~{fragments/layout :: topbar('Product Catalog & Inventory')}"></header>
+
+    <main class="sm-content-area">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <!-- Filter and Sort Control Bar -->
+        <div class="sm-card mb-4">
+            <div class="sm-card-body p-3">
+                <form th:action="@{/products}" method="get" class="row g-2 align-items-center">
+                    <!-- Category Filter -->
+                    <div class="col-12 col-md-3">
+                        <label class="form-label small text-muted mb-1 fw-semibold">Filter by Category</label>
+                        <select name="category" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">All Categories</option>
+                            <option th:each="cat : ${categories}" th:value="${cat}" th:text="${cat}"
+                                    th:selected="${cat == selectedCategory}"></option>
+                        </select>
+                    </div>
+
+                    <!-- Sort Attribute -->
+                    <div class="col-12 col-md-3">
+                        <label class="form-label small text-muted mb-1 fw-semibold">Sort By</label>
+                        <select name="sortBy" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="code" th:selected="${selectedSortBy == 'code'}">Product Code</option>
+                            <option value="name" th:selected="${selectedSortBy == 'name'}">Product Name</option>
+                            <option value="price" th:selected="${selectedSortBy == 'price'}">Selling Price</option>
+                            <option value="quantity" th:selected="${selectedSortBy == 'quantity'}">Stock Quantity</option>
+                            <option value="category" th:selected="${selectedSortBy == 'category'}">Category</option>
+                        </select>
+                    </div>
+
+                    <!-- Sort Order -->
+                    <div class="col-12 col-md-2">
+                        <label class="form-label small text-muted mb-1 fw-semibold">Order</label>
+                        <select name="direction" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="asc" th:selected="${selectedDirection == 'asc'}">Ascending (&uarr;)</option>
+                            <option value="desc" th:selected="${selectedDirection == 'desc'}">Descending (&darr;)</option>
+                        </select>
+                    </div>
+
+                    <!-- Custom Sorting Algorithm Selector -->
+                    <div class="col-12 col-md-2">
+                        <label class="form-label small text-muted mb-1 fw-semibold">Sort Algorithm</label>
+                        <select name="algorithm" class="form-select form-select-sm border-primary" onchange="this.form.submit()">
+                            <option value="merge" th:selected="${selectedAlgorithm == 'merge'}">Merge Sort (O(N log N))</option>
+                            <option value="quick" th:selected="${selectedAlgorithm == 'quick'}">Quick Sort (O(N log N))</option>
+                        </select>
+                    </div>
+
+                    <!-- Add Product Button -->
+                    <div class="col-12 col-md-2 d-flex align-items-end justify-content-md-end mt-3 mt-md-0">
+                        <a th:href="@{/products/new}" class="btn btn-sm btn-primary w-100">
+                            <i class="bi bi-plus-lg me-1"></i> Add Product
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Products Table Card -->
+        <div class="sm-card">
+            <div class="sm-card-header">
+                <div>
+                    <h6 class="sm-card-title mb-0">Products Catalog</h6>
+                    <small class="text-muted" style="font-size: 0.75rem;">
+                        Showing <span th:text="${products.size()}">0</span> products &bull;
+                        Sorted via <span class="badge bg-primary-subtle text-primary" th:text="${selectedAlgorithm == 'quick' ? 'Custom Quick Sort' : 'Custom Merge Sort'}">Custom Merge Sort</span>
+                    </small>
+                </div>
+                <div class="d-flex gap-2">
+                    <a th:href="@{/search}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-search me-1"></i> Advanced DSA Search
+                    </a>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table sm-table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Product Details</th>
+                            <th>Category</th>
+                            <th>Cost / Sell Price</th>
+                            <th>Available Stock</th>
+                            <th>Status</th>
+                            <th>Supplier</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="product : ${products}">
+                            <td>
+                                <span class="font-monospace fw-bold text-dark" th:text="${product.productCode}">PRD-1001</span>
+                            </td>
+                            <td>
+                                <strong th:text="${product.name}">Product Name</strong><br>
+                                <small class="text-muted text-truncate d-inline-block" style="max-width: 250px;" th:text="${product.description}">Description</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-secondary border" th:text="${product.category}">Electronics</span>
+                            </td>
+                            <td>
+                                <div class="small text-muted">Cost: <span th:text="'$' + ${#numbers.formatDecimal(product.purchasePrice, 1, 'COMMA', 2, 'POINT')}">$50.00</span></div>
+                                <div class="fw-bold text-dark">Sell: <span th:text="'$' + ${#numbers.formatDecimal(product.sellingPrice, 1, 'COMMA', 2, 'POINT')}">$75.00</span></div>
+                            </td>
+                            <td>
+                                <span class="fw-bold fs-6" th:text="${product.availableQuantity}">12</span>
+                                <small class="text-muted d-block" style="font-size: 0.72rem;" th:text="'Min: ' + ${product.minStockLevel}">Min: 5</small>
+                            </td>
+                            <td>
+                                <span th:if="${product.outOfStock}" class="badge badge-out-of-stock">Out of Stock</span>
+                                <span th:if="${product.lowStock && !product.outOfStock}" class="badge badge-low-stock">Low Stock</span>
+                                <span th:if="${!product.lowStock && !product.outOfStock}" class="badge badge-in-stock">In Stock</span>
+                            </td>
+                            <td>
+                                <small class="text-muted" th:text="${product.supplier != null ? product.supplier : 'N/A'}">Supplier</small>
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a th:href="@{/products/{id}/edit(id=${product.id})}" class="btn btn-outline-secondary" title="Edit Product">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" title="Delete Product"
+                                            th:data-id="${product.id}"
+                                            th:data-name="${product.name}"
+                                            onclick="confirmDelete(this.getAttribute('data-id'), this.getAttribute('data-name'))">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(products)}">
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                                <h6>No products found matching your filter criteria.</h6>
+                                <a th:href="@{/products/new}" class="btn btn-sm btn-primary mt-2">Add New Product</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Product Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to permanently delete <strong id="deleteProductName">this product</strong>?</p>
+                <div class="alert alert-warning small mb-0">
+                    <i class="bi bi-info-circle me-1"></i>
+                    This action will also synchronize and remove the product from the in-memory <strong>HashTable</strong> and <strong>AVL Tree</strong> indexes.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" action="">
+                    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+
+<script>
+function confirmDelete(productId, productName) {
+    document.getElementById('deleteProductName').innerText = productName;
+    document.getElementById('deleteForm').action = '/products/' + productId + '/delete';
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+</script>
+
+</body>
+</html>
