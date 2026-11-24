@@ -1,0 +1,13 @@
+target/
+.git/
+.gitignore
+data/
+mysqldata/
+*.mv.db
+*.lock.db
+*.log
+logs/
+backups/
+.idea/
+*.iml
+.vscode/
